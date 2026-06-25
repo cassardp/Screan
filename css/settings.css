@@ -72,6 +72,12 @@
     box-shadow: var(--ring-shadow);
 }
 
+.settings-tab.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: default;
+}
+
 .settings-tab:not(.active) + .settings-tab:not(.active) {
     border-left: 1px solid var(--border-subtle);
 }

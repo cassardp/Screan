@@ -225,6 +225,15 @@ App.updateTextFieldsState = function() {
     document.getElementById('bodySection').style.display = hideText ? 'none' : 'block';
     document.getElementById('textGapRow').style.display = hideText ? 'none' : 'flex';
     document.getElementById('alignRow').style.display = hideText ? 'none' : 'flex';
+
+    // Disable the Content tab when there is no text (center preset)
+    var contentTab = document.querySelector('.settings-tab[data-tab="content"]');
+    if (contentTab) {
+        contentTab.classList.toggle('disabled', hideText);
+        if (hideText && contentTab.classList.contains('active')) {
+            document.querySelector('.settings-tab[data-tab="style"]').click();
+        }
+    }
 };
 
 
@@ -270,6 +279,26 @@ App.SECTION_KEYS = {
     device: ['preset', 'hideScreenshot', 'addDeviceFrame', 'deviceFrameColor', 'addShadow', 'screenshotOffsetX', 'screenshotOffsetY', 'screenshotRotation', 'screenshotZoom']
 };
 
+// Effective defaults used by the renderer, for keys that may be undefined on
+// untouched screenshots but explicit on edited ones (same visual result).
+App.RENDER_DEFAULTS = {
+    textGap: 35,
+    screenshotOffsetX: 0,
+    screenshotOffsetY: 33,
+    screenshotRotation: 0,
+    screenshotZoom: 87,
+    bgGradientAngle: 180,
+    bgImageOpacity: 100
+};
+
+// Effective value of a setting: explicit value, else render default, else global default
+App.effectiveSettingValue = function(settings, key) {
+    var v = settings[key];
+    if (v !== undefined && v !== null) return v;
+    if (App.RENDER_DEFAULTS[key] !== undefined) return App.RENDER_DEFAULTS[key];
+    return App.DEFAULT_SETTINGS[key];
+};
+
 // Check if a section's settings match across all screenshots
 App.sectionSettingsMatch = function(section, screenshots) {
     if (screenshots.length < 2) return true;
@@ -280,7 +309,7 @@ App.sectionSettingsMatch = function(section, screenshots) {
     for (var i = 1; i < screenshots.length; i++) {
         var current = screenshots[i].settings;
         for (var j = 0; j < keys.length; j++) {
-            if (first[keys[j]] !== current[keys[j]]) return false;
+            if (App.effectiveSettingValue(first, keys[j]) !== App.effectiveSettingValue(current, keys[j])) return false;
         }
     }
     return true;
